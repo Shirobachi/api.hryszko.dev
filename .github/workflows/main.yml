@@ -7,16 +7,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
 
       - name: Login to docker hub
-        uses: actions/dockerhub-login@v2
+        uses: actions/dockerhub-login@v1
         with:
           username: $DOCKER_USERNAME
           password: $DOCKER_PASSWORD
         
       - name: Build docker image & push to docker hub
-        uses: actions/docker-build@v2
+        uses: actions/docker-build@v1
         with:
           push: true
           context: .
