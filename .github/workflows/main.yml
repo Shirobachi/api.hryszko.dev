@@ -20,4 +20,4 @@ jobs:
         with:
           push: true
           context: .
-          tag: shirobachi/api.hryszko.dev:latest
+          tags: shirobachi/api.hryszko.dev:latest
