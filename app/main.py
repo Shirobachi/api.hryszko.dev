@@ -25,7 +25,7 @@ async def about():
 		"Description": "This is official hryszko.dev API" 
 	}
 
-@app.post("v0/people")
+@app.post("/people")
 async def add_person(name: str, surname: str, age: int):
 	collection = cluster["api-hryszko-dev"]["people"]
 
