@@ -2,11 +2,17 @@ from fastapi import FastAPI
 import os
 import pymongo
 from pymongo import MongoClient
+from pydantic import BaseModel
 
 app = FastAPI()
 DB_LOGIN = os.environ.get('DB_LOGIN')
 DB_PASSWORD  = os.environ.get('DB_PASSWORD')
 cluster = MongoClient(f"mongodb+srv://{DB_LOGIN}:{DB_PASSWORD}@api-hryszko-dev.eqopn.mongodb.net/api-hryszko.dev?retryWrites=true&w=majority")
+
+class Person(BaseModel):
+	name: str
+	surname: str
+	age: int
 
 @app.get("/")
 async def root():
@@ -26,13 +32,16 @@ async def about():
 	}
 
 @app.post("/people")
-async def add_person(name: str, surname: str, age: int):
+async def add_person(person: Person):
 	collection = cluster["api-hryszko-dev"]["people"]
 
 	collection.insert_one({
-		"name": name, 
-		"surname": surname, 
-		"age": age
+		"name": person.name, 
+		"surname": person.surname, 
+		"age": person.age
+	})
+
+	return {"message": f"{person.name} was added"}
 	})
 
 	return {"message": f"{name} was added"}
