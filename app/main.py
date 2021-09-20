@@ -35,13 +35,8 @@ async def about():
 async def add_person(person: Person):
 	collection = cluster["api-hryszko-dev"]["people"]
 
-	collection.insert_one({
-		"name": person.name, 
-		"surname": person.surname, 
-		"age": person.age
-	})
+	collection.insert_one(person)
 
 	return {"message": f"{person.name} was added"}
-	})
 
 	return {"message": f"{name} was added"}
