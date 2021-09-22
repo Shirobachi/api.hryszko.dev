@@ -32,12 +32,13 @@ async def about():
 		"Description": "This is official hryszko.dev API" 
 	}
 
+# Create
 @app.post("/people")
 async def add_person(person: Person):
 	collection = db["people"]
 
 	collection.insert_one(person.dict())
 
-	return {"message": f"{person.name} was added"}
+	return person
 
-	return {"message": f"{name} was added"}
+# Read all
