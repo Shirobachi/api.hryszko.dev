@@ -36,7 +36,7 @@ async def about():
 async def add_person(person: Person):
 	collection = db["people"]
 
-	collection.insert_one(person)
+	collection.insert_one(person.dict())
 
 	return {"message": f"{person.name} was added"}
 
