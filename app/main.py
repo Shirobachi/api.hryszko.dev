@@ -18,9 +18,9 @@ class Person(BaseModel):
 async def root():
     return {"message": "Hello fwend!"}
 
-@app.get("/isEven/{number}")
-async def isEven(number: int):
-    return {"number": number, "isEven": number % 2 == 0}
+@app.get("/is_even/{number}")
+async def is_even(number: int):
+    return {"number": number, "is_even": number % 2 == 0}
 
 @app.get("/about")
 async def about():
