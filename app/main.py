@@ -8,6 +8,7 @@ app = FastAPI()
 DB_LOGIN = os.environ.get('DB_LOGIN')
 DB_PASSWORD  = os.environ.get('DB_PASSWORD')
 cluster = MongoClient(f"mongodb+srv://{DB_LOGIN}:{DB_PASSWORD}@api-hryszko-dev.eqopn.mongodb.net/api-hryszko.dev?retryWrites=true&w=majority")
+db = cluster["api-hryszko-dev"]
 
 class Person(BaseModel):
 	name: str
@@ -33,7 +34,7 @@ async def about():
 
 @app.post("/people")
 async def add_person(person: Person):
-	collection = cluster["api-hryszko-dev"]["people"]
+	collection = db["people"]
 
 	collection.insert_one(person)
 
