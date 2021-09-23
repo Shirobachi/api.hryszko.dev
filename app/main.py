@@ -59,3 +59,11 @@ def get_person(id: str):
 	collection = collection.find_one({"_id": ObjectId(id)})
 
 	return collection
+
+# Update (put)
+@app.put("/people/{id}")
+def update_person(id: str, person: Person):
+	collection = db["people"]
+	collection.update_one({"_id": ObjectId(id)}, {"$set": person.dict()})
+
+	return person
