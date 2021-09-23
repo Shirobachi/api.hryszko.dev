@@ -59,3 +59,19 @@ def get_person(id: str):
 	collection = collection.find_one({"_id": ObjectId(id)})
 
 	return collection
+
+# Update (put)
+@app.put("/people/{id}")
+def update_person(id: str, person: Person):
+	collection = db["people"]
+	collection.update_one({"_id": ObjectId(id)}, {"$set": person.dict()})
+
+	return person
+
+# Remove 
+@app.delete("/people/{id}")
+def remove_person(id: str):
+	collection = db["people"]
+	collection.delete_one({"_id": ObjectId(id)})
+
+	return {"message": "Person deleted"}
