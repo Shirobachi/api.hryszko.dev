@@ -67,3 +67,11 @@ def update_person(id: str, person: Person):
 	collection.update_one({"_id": ObjectId(id)}, {"$set": person.dict()})
 
 	return person
+
+# Remove 
+@app.delete("/people/{id}")
+def remove_person(id: str):
+	collection = db["people"]
+	collection.delete_one({"_id": ObjectId(id)})
+
+	return {"message": "Person deleted"}
