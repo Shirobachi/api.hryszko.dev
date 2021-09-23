@@ -45,6 +45,8 @@ async def add_person(person: Person):
 # Read all
 @app.get("/people", response_model=List[Person])
 def get_all_people():
-	collection = list(db["people"].find({},{"_id": 0}))
+	collection = db["people"]
+	collection = collection.find()
+	collection = list(collection)
 
 	return collection
