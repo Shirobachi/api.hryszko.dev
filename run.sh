@@ -1,6 +1,23 @@
 set -x
 trap "clear && $0" SIGINT
 
+# if parameter is given -c or --clean-up, then clean up
+if [ "$1" = "-c" ] || [ "$1" = "--clean-up" ]; then
+	# while docker images | grep "^<none>" | wc -l > 0 or docker ps -a | grep -v "Up " | wc -l > 1
+	while [ $(docker images | grep "^<none>" | wc -l) -gt 0 ] || [ $(docker ps -a | grep -v "Up " | wc -l) -gt 1 ]; do
+		# stop running containers
+		docker stop $(docker ps -a -q) && 
+	
+		# Remove unused containers
+		docker ps -a | grep -v "Up " | awk '{print $1}' | xargs docker rm -v || exit 1
+
+		# remove unusd images
+		docker images | grep "<none>" | awk '{print $3}' | xargs docker rmi -f || exit 1
+	done
+
+	exit 0
+fi
+
 while true; do
 	# Reading environment variables from .env file
 	envs=""

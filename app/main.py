@@ -4,6 +4,7 @@ import pymongo
 from pymongo import MongoClient
 from pydantic import BaseModel
 from typing import List
+from bson.objectid import ObjectId
 
 app = FastAPI()
 DB_LOGIN = os.environ.get('DB_LOGIN')
@@ -44,7 +45,17 @@ async def add_person(person: Person):
 
 # Read all
 @app.get("/people", response_model=List[Person])
-def list_students():
-	collection = list(db["people"].find({},{"_id": 0}))
+def get_all_people():
+	collection = db["people"]
+	collection = collection.find()
+	collection = list(collection)
+
+	return collection
+
+# Read one
+@app.get("/people/{id}", response_model=Person)
+def get_person(id: str):
+	collection = db["people"]
+	collection = collection.find_one({"_id": ObjectId(id)})
 
 	return collection
