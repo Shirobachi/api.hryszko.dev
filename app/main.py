@@ -3,7 +3,7 @@ import os
 import pymongo
 from pymongo import MongoClient
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from bson.objectid import ObjectId
 
 app = FastAPI()
@@ -13,9 +13,10 @@ cluster = MongoClient(f"mongodb+srv://{DB_LOGIN}:{DB_PASSWORD}@api-hryszko-dev.e
 db = cluster["api-hryszko-dev"]
 
 class Person(BaseModel):
-	name: str
-	surname: str
-	age: int
+	_id: Optional[str]
+	name: Optional[str]
+	surname: Optional[str]
+	age: Optional[int]
 
 @app.get("/")
 async def root():
@@ -50,6 +51,11 @@ def get_all_people():
 	collection = collection.find()
 	collection = list(collection)
 
+	# convert _id to str
+	for person in collection:
+		person["_id"] = str(person["_id"])
+		print(person)
+		
 	return collection
 
 # Read one
@@ -67,6 +73,22 @@ def update_person(id: str, person: Person):
 	collection.update_one({"_id": ObjectId(id)}, {"$set": person.dict()})
 
 	return person
+
+# Update (patch)
+@app.patch("/people/{id}" , response_model=Person)
+def update_person(id: str, person: Person):
+	server_person = get_person(id)
+
+	# copy person to server_person
+	for key, value in person.dict().items():
+		if value != None:
+			server_person[key] = value
+
+	# update server_person
+	collection = db["people"]
+	collection.update_one({"_id": ObjectId(id)}, {"$set": server_person})
+
+	return server_person
 
 # Remove 
 @app.delete("/people/{id}")
