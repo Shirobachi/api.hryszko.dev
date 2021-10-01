@@ -39,7 +39,6 @@ async def about():
 @app.post("/people")
 async def add_person(person: Person):
 	collection = db["people"]
-
 	collection.insert_one(person.dict())
 
 	return person
