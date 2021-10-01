@@ -5,6 +5,7 @@ from pymongo import MongoClient
 from pydantic import BaseModel
 from typing import List, Optional
 from bson.objectid import ObjectId
+from starlette.responses import RedirectResponse
 
 app = FastAPI()
 DB_LOGIN = os.environ.get('DB_LOGIN')
@@ -20,7 +21,7 @@ class Person(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"message": "Hello fwend!"}
+    return RedirectResponse(url='/docs')
 
 @app.get("/is_even/{number}")
 async def is_even(number: int):
