@@ -13,7 +13,7 @@ cluster = MongoClient(f"mongodb+srv://{DB_LOGIN}:{DB_PASSWORD}@api-hryszko-dev.e
 db = cluster["api-hryszko-dev"]
 
 class Person(BaseModel):
-	_id: Optional[str]
+	id: Optional[str]
 	name: Optional[str]
 	surname: Optional[str]
 	age: Optional[int]
@@ -51,10 +51,9 @@ def get_all_people():
 	collection = collection.find()
 	collection = list(collection)
 
-	# convert _id to str
+	# Convert _id to str as id
 	for person in collection:
-		person["_id"] = str(person["_id"])
-		print(person)
+		person['id'] = str(person['_id'])
 		
 	return collection
 
