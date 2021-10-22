@@ -22,7 +22,7 @@ if [ "$1" = "-x" ]; then
 	set -x 
 fi
 
-while true; do
+for i in `seq 10`; do
 	# Reading environment variables from .env file
 	envs=""
 	for i in $(seq $(cat app/.env | wc -l)); do
