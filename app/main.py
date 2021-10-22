@@ -3,8 +3,9 @@ import os
 import pymongo
 from pymongo import MongoClient
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from bson.objectid import ObjectId
+from starlette.responses import RedirectResponse
 
 app = FastAPI()
 DB_LOGIN = os.environ.get('DB_LOGIN')
@@ -13,13 +14,14 @@ cluster = MongoClient(f"mongodb+srv://{DB_LOGIN}:{DB_PASSWORD}@api-hryszko-dev.e
 db = cluster["api-hryszko-dev"]
 
 class Person(BaseModel):
-	name: str
-	surname: str
-	age: int
+	id: Optional[str]
+	name: Optional[str]
+	surname: Optional[str]
+	age: Optional[int]
 
 @app.get("/")
 async def root():
-    return {"message": "Hello fwend!"}
+    return RedirectResponse(url='/docs')
 
 @app.get("/is_even/{number}")
 async def is_even(number: int):
@@ -38,7 +40,6 @@ async def about():
 @app.post("/people")
 async def add_person(person: Person):
 	collection = db["people"]
-
 	collection.insert_one(person.dict())
 
 	return person
@@ -50,6 +51,10 @@ def get_all_people():
 	collection = collection.find()
 	collection = list(collection)
 
+	# Convert _id to str as id
+	for person in collection:
+		person['id'] = str(person['_id'])
+		
 	return collection
 
 # Read one
@@ -67,6 +72,22 @@ def update_person(id: str, person: Person):
 	collection.update_one({"_id": ObjectId(id)}, {"$set": person.dict()})
 
 	return person
+
+# Update (patch)
+@app.patch("/people/{id}" , response_model=Person)
+def update_person(id: str, person: Person):
+	server_person = get_person(id)
+
+	# copy person to server_person
+	for key, value in person.dict().items():
+		if value != None:
+			server_person[key] = value
+
+	# update server_person
+	collection = db["people"]
+	collection.update_one({"_id": ObjectId(id)}, {"$set": server_person})
+
+	return server_person
 
 # Remove 
 @app.delete("/people/{id}")
