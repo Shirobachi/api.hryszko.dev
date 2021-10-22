@@ -1,4 +1,3 @@
-set -x
 trap "clear && $0" SIGINT
 
 # if parameter is given -c or --clean-up, then clean up
@@ -16,6 +15,11 @@ if [ "$1" = "-c" ] || [ "$1" = "--clean-up" ]; then
 	done
 
 	exit 0
+fi
+
+# if parameter is given -x
+if [ "$1" = "-x" ]; then
+	set -x 
 fi
 
 while true; do
