@@ -103,3 +103,22 @@ class User(BaseModel):
 	password: str
 
 
+# Register new person
+@app.post("/users")
+async def register(user: User):
+	# TODO: validation (login:alreadyExist|tooShort|tooLong|hasSpecialChars,password:tooShort|tooLong)
+
+	# print(f"Pass: {user.password}")
+
+	# user.password = hashlib.sha224(b"{user.password}").hexdigest()
+	user.password = generate_password_hash(user.password)
+	# print(user.password)
+
+	Collection = db["users"]
+	Collection.insert_one(user.dict())
+
+	return {
+		"message": "User created"
+	}
+
+
