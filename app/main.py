@@ -3,9 +3,13 @@ import os
 import pymongo
 from pymongo import MongoClient
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Collection, List, Optional
 from bson.objectid import ObjectId
 from starlette.responses import RedirectResponse
+import hashlib
+from werkzeug.security import generate_password_hash, check_password_hash
+
+
 
 app = FastAPI()
 DB_LOGIN = os.environ.get('DB_LOGIN')
@@ -121,4 +125,49 @@ async def register(user: User):
 		"message": "User created"
 	}
 
+
+# Generate token JWT
+@app.post("/token")
+async def login(user: User):
+	Collection = db["users"]
+	Collection = Collection.find_one({"login": user.login})
+
+	if Collection == None:
+		return {
+			"message": "User not found"
+		}
+
+	# check if hash password is equal
+	# print(user.password.check_password(Collection['password']))
+
+	# if Collection['password'] == hashlib.sha224(b"{user.password}").hexdigest():
+	# 	return {
+	# 		"token": "token"
+	# 	}
+	# else:
+	# 	return {
+	# 		"message": "Wrong password"
+	# 	}
+
+	if(check_password_hash(Collection['password'], user.password)):
+		id = str(Collection['_id'])
+		token = jwt.encode(
+			{"id": id}, 
+			#TODO: put secret key in env
+			"JEmvFzwHfKttJO7QrXN1Su7B5YqDdPMol1ms0zc2ytZVpCgl8a2kBsWInbxLHLVU", 
+			algorithm="HS256"
+		)
+
+		return {
+			"token": token
+		}
+	else:
+		return {
+			"message": "Wrong password"
+		}
+		
+
+	# return True if (
+	# 	check_password_hash(Collection['password'], user.password)
+	# ) else False
 
