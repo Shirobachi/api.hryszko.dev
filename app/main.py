@@ -96,3 +96,10 @@ def remove_person(id: str):
 	collection.delete_one({"_id": ObjectId(id)})
 
 	return {"message": "Person deleted"}
+
+
+class User(BaseModel):
+	login: str
+	password: str
+
+
