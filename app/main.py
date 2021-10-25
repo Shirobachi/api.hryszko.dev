@@ -26,11 +26,11 @@ class Person(BaseModel):
 
 @app.get("/", include_in_schema=False)
 async def root():
-    return RedirectResponse(url='/docs')
+	return RedirectResponse(url='/docs')
 
 @app.get("/is_even/{number}")
 async def is_even(number: int):
-    return {"number": number, "is_even": number % 2 == 0}
+	return {"number": number, "is_even": number % 2 == 0}
 
 @app.get("/about")
 async def about():
@@ -174,35 +174,28 @@ async def login(user: User):
 # verify token
 @app.get("/token/{token}")
 async def verify_token(token: str):
-	# return {
-	# 	jwt.decode(
-	# 		{id: token}, 
-	# 		"JEmvFzwHfKttJO7QrXN1Su7B5YqDdPMol1ms0zc2ytZVpCgl8a2kBsWInbxLHLVU", 
-	# 		algorithms="HS256"
-	# 	)
-	# } 
 
-	# return jwt.decode(
-	# 		{token: token}, 
-	# 		"JEmvFzwHfKttJO7QrXN1Su7B5YqDdPMol1ms0zc2ytZVpCgl8a2kBsWInbxLHLVU", 
-	# 		algorithms=["HS256"])
-
-	tryThis = {"token":token}
-	print(tryThis)
 	code = "JEmvFzwHfKttJO7QrXN1Su7B5YqDdPMol1ms0zc2ytZVpCgl8a2kBsWInbxLHLVU"
 
+
 	try:
-		# result = jwt.decode(token, key=code, algorithms=['HS256', ])
-		# return result
-		id = jwt.decode(
-			tryThis, 
-			"JEmvFzwHfKttJO7QrXN1Su7B5YqDdPMol1ms0zc2ytZVpCgl8a2kBsWInbxLHLVU", 
-			algorithms=["HS256"])
-		# return None
+		r = jwt.decode(token, code, algorithms=["HS256", ])
+		r = r['id']
+		print(r)
+
 		Collection = db["users"]
-		Collection = Collection.find_one({"_id": ObjectId(id)})
+		Collection = Collection.find_one({"_id": ObjectId(r)}, {'_id': 0})
+		# unset collection.password
+		Collection.pop('password')
+		
 		return Collection
 	except:
 		return {
 			"message": "Token is invalid"
 		}
+
+
+	collection = db["people"]
+	collection = collection.find_one({"_id": ObjectId(id)})
+
+	return collection
