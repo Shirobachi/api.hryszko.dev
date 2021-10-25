@@ -1,3 +1,4 @@
+import jwt
 from fastapi import FastAPI
 import os
 import pymongo
@@ -166,8 +167,42 @@ async def login(user: User):
 			"message": "Wrong password"
 		}
 		
-
 	# return True if (
 	# 	check_password_hash(Collection['password'], user.password)
 	# ) else False
 
+# verify token
+@app.get("/token/{token}")
+async def verify_token(token: str):
+	# return {
+	# 	jwt.decode(
+	# 		{id: token}, 
+	# 		"JEmvFzwHfKttJO7QrXN1Su7B5YqDdPMol1ms0zc2ytZVpCgl8a2kBsWInbxLHLVU", 
+	# 		algorithms="HS256"
+	# 	)
+	# } 
+
+	# return jwt.decode(
+	# 		{token: token}, 
+	# 		"JEmvFzwHfKttJO7QrXN1Su7B5YqDdPMol1ms0zc2ytZVpCgl8a2kBsWInbxLHLVU", 
+	# 		algorithms=["HS256"])
+
+	tryThis = {"token":token}
+	print(tryThis)
+	code = "JEmvFzwHfKttJO7QrXN1Su7B5YqDdPMol1ms0zc2ytZVpCgl8a2kBsWInbxLHLVU"
+
+	try:
+		# result = jwt.decode(token, key=code, algorithms=['HS256', ])
+		# return result
+		id = jwt.decode(
+			tryThis, 
+			"JEmvFzwHfKttJO7QrXN1Su7B5YqDdPMol1ms0zc2ytZVpCgl8a2kBsWInbxLHLVU", 
+			algorithms=["HS256"])
+		# return None
+		Collection = db["users"]
+		Collection = Collection.find_one({"_id": ObjectId(id)})
+		return Collection
+	except:
+		return {
+			"message": "Token is invalid"
+		}
