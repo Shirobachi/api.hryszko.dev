@@ -1,22 +1,19 @@
 import jwt
 from fastapi import FastAPI
 import os
-import pymongo
 from pymongo import MongoClient
 from pydantic import BaseModel
-from typing import Collection, List, Optional
+from typing import List, Optional
 from bson.objectid import ObjectId
 from starlette.responses import RedirectResponse
-import hashlib
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
-
-app = FastAPI()
 DB_LOGIN = os.environ.get('DB_LOGIN')
 DB_PASSWORD  = os.environ.get('DB_PASSWORD')
 cluster = MongoClient(f"mongodb+srv://{DB_LOGIN}:{DB_PASSWORD}@api-hryszko-dev.eqopn.mongodb.net/api-hryszko.dev?retryWrites=true&w=majority")
 db = cluster["api-hryszko-dev"]
+app = FastAPI()
 
 class Person(BaseModel):
 	id: Optional[str]
@@ -187,15 +184,9 @@ async def verify_token(token: str):
 		Collection = Collection.find_one({"_id": ObjectId(r)}, {'_id': 0})
 		# unset collection.password
 		Collection.pop('password')
-		
+
 		return Collection
 	except:
 		return {
 			"message": "Token is invalid"
 		}
-
-
-	collection = db["people"]
-	collection = collection.find_one({"_id": ObjectId(id)})
-
-	return collection
