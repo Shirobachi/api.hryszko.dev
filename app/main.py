@@ -1,5 +1,5 @@
 import jwt
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import os
 from pymongo import MongoClient
 from pydantic import BaseModel
@@ -127,28 +127,46 @@ async def register(user: User):
 	print (user.login, user.login.isalnum())
 
 	if not user.login.isalnum():
-		return {"message": "Login has special chars"}
+		raise HTTPException(
+            status_code=400,
+            detail="Login has special chars",
+        )
 
 	# if login not b/w 3-20 chars
 	if len(user.login) < 3 or len(user.login) > 20:
-		return {"message": "Login must be between 3 and 20 characters"}
+		raise HTTPException(
+            status_code=400,
+            detail="Login must be between 3 and 20 characters",
+        )
 
 	# Check if login already exist
 	if Collection.find_one({"login": user.login}):
-		return {"message": "Login already exist"}
+		raise HTTPException(
+            status_code=400,
+            detail="Login has special chars",
+        )
 
 	# VALIDATION - PASSWORD
 	# check if password has at least one number
 	if not any(char.isdigit() for char in user.password):
-		return {"message": "Password must contain at least one number"}
+		raise HTTPException(
+            status_code=400,
+            detail="Password must contain at least one number",
+        )
 
 	# check if password has at least one uppercase letter
 	if not any(char.isupper() for char in user.password):
-		return {"message": "Password must contain at least one uppercase letter"}
+		raise HTTPException(
+            status_code=400,
+            detail="Password must contain at least one uppercase letter",
+        )
 
 	# check if password is at least 8 chars long and not more than 100
 	if len(user.password) < 8 or len(user.password) > 100:
-		return {"message": "Password must be between 8 and 100 characters"}
+		raise HTTPException(
+            status_code=400,
+            detail="Password must be between 8 and 100 characters",
+        )
 
 	user.password = generate_password_hash(user.password)
 	Collection.insert_one(user.dict())
@@ -157,19 +175,18 @@ async def register(user: User):
 		"message": "User created"
 	}
 
-
 # Generate token JWT
 @app.post("/token")
 async def login(user: User):
 	Collection = db["users"]
 	Collection = Collection.find_one({"login": user.login})
 
-	if Collection == None:
-		return {
-			"message": "User not found"
-		}
-
-	if(check_password_hash(Collection['password'], user.password)):
+	if Collection == None or not (check_password_hash(Collection['password'], user.password)):
+		raise HTTPException(
+            status_code=403,
+            detail="Credentials invalid!",
+        )
+	else:
 		id = str(Collection['_id'])
 		token = jwt.encode(
 			{"id": id}, 
@@ -179,10 +196,6 @@ async def login(user: User):
 
 		return {
 			"token": token
-		}
-	else:
-		return {
-			"message": "Wrong password"
 		}
 
 
@@ -202,6 +215,7 @@ async def verify_token(token: str):
 
 		return Collection
 	except:
-		return {
-			"message": "Token is invalid"
-		}
+		raise HTTPException(
+            status_code=401,
+            detail="Token invalid!",
+        )
