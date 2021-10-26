@@ -119,7 +119,35 @@ class User(BaseModel):
 @app.post("/users")
 async def register(user: User):
 	Collection = db["users"]
-	# TODO: validation (login:alreadyExist|tooShort|tooLong|hasSpecialChars,password:tooShort|tooLong)
+	# TODO: validation (password:tooShort|tooLong)
+
+	# VALIDATION - LOGIN
+	# Check if login has special chars
+	print (user.login, user.login.isalnum())
+
+	if not user.login.isalnum():
+		return {"message": "Login has special chars"}
+
+	# if login not b/w 3-20 chars
+	if len(user.login) < 3 or len(user.login) > 20:
+		return {"message": "Login must be between 3 and 20 characters"}
+
+	# Check if login already exist
+	if Collection.find_one({"login": user.login}):
+		return {"message": "Login already exist"}
+
+	# VALIDATION - PASSWORD
+	# check if password has at least one number
+	if not any(char.isdigit() for char in user.password):
+		return {"message": "Password must contain at least one number"}
+
+	# check if password has at least one uppercase letter
+	if not any(char.isupper() for char in user.password):
+		return {"message": "Password must contain at least one uppercase letter"}
+
+	# check if password is at least 8 chars long and not more than 100
+	if len(user.password) < 8 or len(user.password) > 100:
+		return {"message": "Password must be between 8 and 100 characters"}
 
 	user.password = generate_password_hash(user.password)
 	Collection.insert_one(user.dict())
