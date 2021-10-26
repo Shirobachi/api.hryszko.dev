@@ -11,6 +11,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 DB_LOGIN = os.environ.get('DB_LOGIN')
 DB_PASSWORD  = os.environ.get('DB_PASSWORD')
+JWT_SECRET_KEY  = os.environ.get('JWT_SECRET_KEY')
 
 cluster = MongoClient(f"mongodb+srv://{DB_LOGIN}:{DB_PASSWORD}@api-hryszko-dev.eqopn.mongodb.net/api-hryszko.dev?retryWrites=true&w=majority")
 db = cluster["api-hryszko-dev"]
@@ -172,8 +173,7 @@ async def login(user: User):
 		id = str(Collection['_id'])
 		token = jwt.encode(
 			{"id": id}, 
-			#TODO: put secret key in env
-			"JEmvFzwHfKttJO7QrXN1Su7B5YqDdPMol1ms0zc2ytZVpCgl8a2kBsWInbxLHLVU", 
+			JWT_SECRET_KEY,
 			algorithm="HS256"
 		)
 
@@ -190,10 +190,8 @@ async def login(user: User):
 @app.get("/token/{token}")
 async def verify_token(token: str):
 
-	code = "JEmvFzwHfKttJO7QrXN1Su7B5YqDdPMol1ms0zc2ytZVpCgl8a2kBsWInbxLHLVU"
-
 	try:
-		r = jwt.decode(token, code, algorithms=["HS256", ])
+		r = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256", ])
 		r = r['id']
 		print(r)
 
