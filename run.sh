@@ -1,4 +1,5 @@
-trap "clear && $0" SIGINT
+#! /bin/bash
+trap "sleep .5 && clear && $0 || clear && exit 0" INT
 
 # if parameter is given -c or --clean-up, then clean up
 if [ "$1" = "-c" ] || [ "$1" = "--clean-up" ]; then
@@ -22,7 +23,7 @@ if [ "$1" = "-x" ]; then
 	set -x 
 fi
 
-for i in `seq 10`; do
+while true; do
 	# Reading environment variables from .env file
 	envs=""
 	for i in $(seq $(cat app/.env | wc -l)); do
