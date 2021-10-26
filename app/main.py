@@ -11,15 +11,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 DB_LOGIN = os.environ.get('DB_LOGIN')
 DB_PASSWORD  = os.environ.get('DB_PASSWORD')
+
 cluster = MongoClient(f"mongodb+srv://{DB_LOGIN}:{DB_PASSWORD}@api-hryszko-dev.eqopn.mongodb.net/api-hryszko.dev?retryWrites=true&w=majority")
 db = cluster["api-hryszko-dev"]
+
 app = FastAPI()
 
-class Person(BaseModel):
-	id: Optional[str]
-	name: Optional[str]
-	surname: Optional[str]
-	age: Optional[int]
+# <<>><<>><<>><<>> MISC <<>><<>><<>><<>>
 
 @app.get("/", include_in_schema=False)
 async def root():
@@ -37,6 +35,16 @@ async def about():
 		"Github": "shirobachi",
 		"Description": "This is official hryszko.dev API" 
 	}
+
+
+# <<>><<>><<>><<>> PERSON <<>><<>><<>><<>>
+
+class Person(BaseModel):
+	id: Optional[str]
+	name: Optional[str]
+	surname: Optional[str]
+	age: Optional[int]
+
 
 # Create
 @app.post("/people")
@@ -100,6 +108,8 @@ def remove_person(id: str):
 	return {"message": "Person deleted"}
 
 
+# <<>><<>><<>><<>> USER <<>><<>><<>><<>>
+
 class User(BaseModel):
 	login: str
 	password: str
@@ -108,15 +118,10 @@ class User(BaseModel):
 # Register new person
 @app.post("/users")
 async def register(user: User):
+	Collection = db["users"]
 	# TODO: validation (login:alreadyExist|tooShort|tooLong|hasSpecialChars,password:tooShort|tooLong)
 
-	# print(f"Pass: {user.password}")
-
-	# user.password = hashlib.sha224(b"{user.password}").hexdigest()
 	user.password = generate_password_hash(user.password)
-	# print(user.password)
-
-	Collection = db["users"]
 	Collection.insert_one(user.dict())
 
 	return {
@@ -135,18 +140,6 @@ async def login(user: User):
 			"message": "User not found"
 		}
 
-	# check if hash password is equal
-	# print(user.password.check_password(Collection['password']))
-
-	# if Collection['password'] == hashlib.sha224(b"{user.password}").hexdigest():
-	# 	return {
-	# 		"token": "token"
-	# 	}
-	# else:
-	# 	return {
-	# 		"message": "Wrong password"
-	# 	}
-
 	if(check_password_hash(Collection['password'], user.password)):
 		id = str(Collection['_id'])
 		token = jwt.encode(
@@ -163,17 +156,13 @@ async def login(user: User):
 		return {
 			"message": "Wrong password"
 		}
-		
-	# return True if (
-	# 	check_password_hash(Collection['password'], user.password)
-	# ) else False
+
 
 # verify token
 @app.get("/token/{token}")
 async def verify_token(token: str):
 
 	code = "JEmvFzwHfKttJO7QrXN1Su7B5YqDdPMol1ms0zc2ytZVpCgl8a2kBsWInbxLHLVU"
-
 
 	try:
 		r = jwt.decode(token, code, algorithms=["HS256", ])
