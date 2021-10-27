@@ -113,8 +113,7 @@ def remove_person(id: str):
 
 class User(BaseModel):
 	login: str
-	password: str
-
+	password: Optional[str]
 
 # Register new person
 @app.post("/users")
@@ -175,8 +174,12 @@ async def register(user: User):
 		"message": "User created"
 	}
 
+class Token(BaseModel):
+	token: str
+
+
 # Generate token JWT
-@app.post("/token")
+@app.post("/token", response_model=Token)
 async def login(user: User):
 	Collection = db["users"]
 	Collection = Collection.find_one({"login": user.login})
@@ -188,29 +191,26 @@ async def login(user: User):
         )
 	else:
 		id = str(Collection['_id'])
-		token = jwt.encode(
+
+		return {
+			"token": jwt.encode(
 			{"id": id}, 
 			JWT_SECRET_KEY,
 			algorithm="HS256"
-		)
-
-		return {
-			"token": token
+			)
 		}
 
 
 # verify token
-@app.get("/token/{token}")
+@app.get("/token/{token}", response_model=User)
 async def verify_token(token: str):
-
 	try:
 		r = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256", ])
 		r = r['id']
-		print(r)
 
 		Collection = db["users"]
 		Collection = Collection.find_one({"_id": ObjectId(r)}, {'_id': 0})
-		# unset collection.password
+
 		Collection.pop('password')
 
 		return Collection
