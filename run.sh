@@ -1,5 +1,5 @@
 #! /bin/bash
-trap "sleep .5 && clear && $0 || clear && exit 0" INT
+trap "sleep .5 && clear && $0 || exit 0" INT
 
 # if parameter is given -c or --clean-up, then clean up
 if [ "$1" = "-c" ] || [ "$1" = "--clean-up" ]; then
