@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from starlette.responses import RedirectResponse
 import os
 
-
 # import all the routes
 from app.routers.people import router as people
 from app.routers.users import router as users
