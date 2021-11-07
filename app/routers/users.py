@@ -3,7 +3,7 @@ from app.common import *
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson.objectid import ObjectId
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 from typing import Optional
 import jwt
 
@@ -11,8 +11,27 @@ router = APIRouter()
 
 # Models
 class User(BaseModel):
-	login: str
-	password: str
+	login: str = Field(min_length=3, max_length=20)
+	password: str = Field(min_length=8, max_length=100)
+
+	@validator('login')
+	def login_is_unique(cls, v):
+		if not v.isalnum():
+			raise ValueError('Login must be alphanumeric')
+
+		return v
+
+	@validator('password')
+	def password_is_secure(cls, v):
+		if not v.isalnum():
+			raise ValueError('Password must be alphanumeric')
+		if not any(char.isdigit() for char in v):
+			raise ValueError('Password must contain a number')
+		if not any(char.isupper() for char in v):
+			raise ValueError('Password must contain an upper case letter')
+
+		return v
+
 class UserNoPass(BaseModel):
 	login: str
 
@@ -23,27 +42,11 @@ class Token(BaseModel):
 # Register new person
 @router.post("/", response_model=UserNoPass, tags=["users"])
 async def register(user: User):
-	Collection = db["users"]
-	# TODO: validation (password:tooShort|tooLong)
-
-	# VALIDATION - LOGIN
-	# Check if login has special chars
-	print (user.login, user.login.isalnum())
-
-	if not user.login.isalnum(): # if login contain a-zA-Z0-9
-		raise HTTPException( status_code=400, detail="Login has special chars")
-	if len(user.login) < 3 or len(user.login) > 20: # if login not b/w 3-20 chars
-		raise HTTPException( status_code=400, detail="Login must be between 3 and 20 characters")
-	if Collection.find_one({"login": user.login}): # Check if login already exist
+	# Validation
+	if db.users.find_one({'login': user.login}):
 		raise HTTPException( status_code=400, detail="Login taken")
-	if not any(char.isdigit() for char in user.password): # check if password has at least one number
-		raise HTTPException( status_code=400, detail="Password must contain at least one number")
-	if not any(char.isupper() for char in user.password): # check if password has at least one uppercase letter
-		raise HTTPException( status_code=400, detail="Password must contain at least one uppercase letter")
-	if len(user.password) < 8 or len(user.password) > 100: # check if password is at least 8 chars long and not more than 100
-		raise HTTPException( status_code=400, detail="Password must be between 8 and 100 characters")
 
-
+	Collection = db["users"]
 	user.password = generate_password_hash(user.password)
 	Collection.insert_one(user.dict())
 

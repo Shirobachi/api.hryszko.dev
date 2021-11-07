@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from app.common import *
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ValidationError, validator
 from typing import List, Optional
 from bson.objectid import ObjectId
 
@@ -10,38 +10,54 @@ router = APIRouter()
 
 # Models
 class Person(BaseModel):
-	name: str
-	surname: str
-	age: int
+	name: str = Field(min_length=3, max_length=20)
+	surname: str = Field(min_length=3, max_length=20)
+	age: int = Field(ge=0, le=122)
 
-class PersonOptional(BaseModel):
-	name: Optional[str]
-	surname: Optional[str]
-	age: Optional[int]
+	# validate
+	@validator('name')
+	def validate_name(cls, v):
+		if not v.isalpha():
+			raise ValueError('Name must be alphabetic')
 
+		return v.title()
+
+
+	@validator('surname')
+	def validate_surname(cls, v):
+		if not v.isalpha():
+			raise ValueError('Surname must be alphabetic')
+
+		return v.title()
+
+
+class PersonOptional(Person):
+	name: Optional[str] = Field(min_length=3, max_length=20)
+	surname: Optional[str] = Field(min_length=3, max_length=20)
+	age: Optional[int] = Field(ge=0, le=122)
+
+
+	# validate
+	@validator('name')
+	def validate_name(cls, v):
+		if not v.isalpha():
+			raise ValueError('Name must be alphabetic')
+
+		return v.title()
+
+
+	@validator('surname')
+	def validate_surname(cls, v):
+		if not v.isalpha():
+			raise ValueError('Surname must be alphabetic')
+
+		return v.title()
 
 class PersonWithID(BaseModel):
 	id: str
 	name: str
 	surname: str
 	age: int
-
-
-# Validateion functions
-def validate_name(val):
-	if not val.isalpha():  # isAlpha()
-		return False
-	if len(val) < 3 or len(val) > 20:  # len b/w 3-20
-		return False
-
-	return True
-
-
-def validate_age(val):
-	if val <= 0 or val > 122: # len b/w 1-2
-		return False
-
-	return True
 
 
 def validate_id(val):
@@ -54,18 +70,6 @@ def validate_id(val):
 # Create
 @router.post("/", response_model=PersonWithID, tags=["people"])
 async def add_person(person: Person):
-	# Validation
-	if(not validate_name(person.name)):
-		raise HTTPException( status_code=400, detail="Incorrect name!", )
-	if(not validate_name(person.surname)):
-		raise HTTPException( status_code=400, detail="Incorrect surname!", )
-	if(not validate_age(person.age)):
-		raise HTTPException( status_code=400, detail="Incorrect age!", )
-
-	# make first letter of name uppercase
-	person.name = person.name.title()
-	person.surname = person.surname.title()
-
 	# Insert
 	collection = db["people"]
 	id = collection.save(person.dict())
@@ -114,17 +118,6 @@ def update_person(id: str, person: Person):
 	if db["people"].find_one({"_id": ObjectId(id)}) is None:
 		raise HTTPException( status_code=404, detail="Person not found!", )
 
-	if(not validate_name(person.name)):
-		raise HTTPException( status_code=400, detail="Incorrect name!", )
-	if(not validate_name(person.surname)):
-		raise HTTPException( status_code=400, detail="Incorrect surname!", )
-	if(not validate_age(person.age)):
-		raise HTTPException( status_code=400, detail="Incorrect age!", )
-
-	# make first letter of name uppercase
-	person.name = person.name.title()
-	person.surname = person.surname.title()
-
 	# Update
 	collection = db["people"]
 	collection.update_one({"_id": ObjectId(id)}, {"$set": person.dict()})
@@ -140,13 +133,6 @@ def update_person(id: str, person: PersonOptional):
 		raise HTTPException( status_code=400, detail="Incorrect id!", )
 	if db["people"].find_one({"_id": ObjectId(id)}) is None:
 		raise HTTPException( status_code=404, detail="Person not found!", )
-
-	if(person.name != None and not validate_name(person.name)):
-		raise HTTPException( status_code=400, detail="Incorrect name!", )
-	if(person.surname != None and not validate_name(person.surname)):
-		raise HTTPException( status_code=400, detail="Incorrect surname!", )
-	if(person.age != None and not validate_age(person.age)):
-		raise HTTPException( status_code=400, detail="Incorrect age!", )
 
 
 	# copy person to server_person
