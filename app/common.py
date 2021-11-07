@@ -2,6 +2,10 @@ from pymongo import MongoClient
 import os
 
 
+if os.environ.get('DB_LOGIN') == None:
+	from dotenv import load_dotenv
+	load_dotenv()
+
 DB_LOGIN = os.environ.get('DB_LOGIN')
 DB_PASSWORD  = os.environ.get('DB_PASSWORD')
 JWT_SECRET_KEY  = os.environ.get('JWT_SECRET_KEY')
