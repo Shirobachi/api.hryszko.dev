@@ -64,13 +64,13 @@ def validate_id(val):
 
 # ============================================================
 # Create
-@router.post("/", response_model=PersonWithID, tags=["people"])
-async def add_person(person: Person):
-	# Insert
+@router.post("/", tags=["people"], response_model=PersonWithID)
+def add_person(person: Person):
 	collection = db["people"]
-	id = collection.save(person.dict())
+	person = person.dict()
+	person['id'] = str(collection.insert_one(person).inserted_id)
 
-	return get_person(id)
+	return person
 
 
 # Read all
@@ -96,12 +96,12 @@ def get_person(id: str):
 	# Get data
 	collection = db["people"]
 	collection = collection.find_one({"_id": ObjectId(id)})
-	collection['id'] = str(collection['_id'])
 
 	# check if person exist
 	if collection is None:
 		raise HTTPException( status_code=404, detail="Person not found!", )
 
+	collection['id'] = str(collection['_id'])
 	return collection
 
 
@@ -111,6 +111,7 @@ def update_person(id: str, person: Person):
 	# Validation
 	if not validate_id(id):
 		raise HTTPException( status_code=400, detail="Incorrect id!", )
+	
 	if db["people"].find_one({"_id": ObjectId(id)}) is None:
 		raise HTTPException( status_code=404, detail="Person not found!", )
 
