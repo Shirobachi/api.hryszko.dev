@@ -15,7 +15,7 @@ class User(BaseModel):
 	password: str = Field(min_length=8, max_length=100)
 
 	@validator('login')
-	def login_is_unique(cls, v):
+	def login_is_alphanum(cls, v):
 		if not v.isalnum():
 			raise ValueError('Login must be alphanumeric')
 
@@ -29,6 +29,8 @@ class User(BaseModel):
 			raise ValueError('Password must contain a number')
 		if not any(char.isupper() for char in v):
 			raise ValueError('Password must contain an upper case letter')
+		if not any(char.islower() for char in v):
+			raise ValueError('Password must contain an lower case letter')
 
 		return v
 
@@ -44,7 +46,7 @@ class Token(BaseModel):
 async def register(user: User):
 	# Validation
 	if db.users.find_one({'login': user.login}):
-		raise HTTPException( status_code=400, detail="Login taken")
+		raise HTTPException( status_code=422, detail="Login taken")
 
 	Collection = db["users"]
 	user.password = generate_password_hash(user.password)
@@ -70,14 +72,14 @@ async def delete(user: User):
 
 
 # Generate token JWT
-@router.post("/token", response_model=Token, tags=["users"])
+@router.post("/token/", response_model=Token, tags=["users"])
 async def login(user: User):
 	Collection = db["users"]
 	Collection = Collection.find_one({"login": user.login})
 
 	if Collection == None or not (check_password_hash(Collection['password'], user.password)):
 		raise HTTPException(
-            status_code=403,
+            status_code=401,
             detail="Credentials invalid!",
         )
 	else:
