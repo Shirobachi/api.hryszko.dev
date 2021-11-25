@@ -10,15 +10,17 @@ router = APIRouter()
 
 # Models
 class Person(BaseModel):
-	name: str = Field(min_length=3, max_length=20)
-	surname: str = Field(min_length=3, max_length=20)
-	age: int = Field(ge=0, le=122)
+	name: str
+	surname: str
+	age: int
 
 	# validate
 	@validator('name')
 	def validate_name(cls, v):
 		if not v.isalpha():
 			raise ValueError('Name must be alphabetic')
+		if len(v) < 3 or len(v) > 20:
+			raise ValueError('Name must be between 3 and 20 characters')
 
 		return v.title()
 
@@ -27,31 +29,25 @@ class Person(BaseModel):
 	def validate_surname(cls, v):
 		if not v.isalpha():
 			raise ValueError('Surname must be alphabetic')
+		if len(v) < 3 or len(v) > 20:
+			raise ValueError('Name must be between 3 and 20 characters')
 
 		return v.title()
+
+	
+	@validator('age')
+	def validate_age(cls, v):
+		if v <= 0 or v > 122:
+			raise ValueError('Age must be between 1 and 122')
+
+		return v
 
 
 class PersonOptional(Person):
-	name: Optional[str] = Field(min_length=3, max_length=20)
-	surname: Optional[str] = Field(min_length=3, max_length=20)
-	age: Optional[int] = Field(ge=0, le=122)
-
-
-	# validate
-	@validator('name')
-	def validate_name(cls, v):
-		if not v.isalpha():
-			raise ValueError('Name must be alphabetic')
-
-		return v.title()
-
-
-	@validator('surname')
-	def validate_surname(cls, v):
-		if not v.isalpha():
-			raise ValueError('Surname must be alphabetic')
-
-		return v.title()
+	name: Optional[str]
+	surname: Optional[str]
+	age: Optional[int]
+	
 
 class PersonWithID(BaseModel):
 	id: str
