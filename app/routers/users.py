@@ -53,6 +53,22 @@ async def register(user: User):
 	return user
 
 
+# Delete user
+@router.delete("/", tags=["users"])
+async def delete(user: User):
+	if db["users"].find_one({"login": user.login}) is None:
+		raise HTTPException( status_code=404, detail="Account not found!")
+
+	# check password
+	if not check_password_hash(db["users"].find_one({"login": user.login})["password"], user.password):
+		raise HTTPException( status_code=401, detail="Wrong password!")
+
+	collection = db["users"]
+	collection.delete_one({"login": user.login})
+
+	return {"message": "Account deleted!"}
+
+
 # Generate token JWT
 @router.post("/token", response_model=Token, tags=["users"])
 async def login(user: User):
