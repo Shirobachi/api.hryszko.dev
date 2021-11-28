@@ -2,16 +2,19 @@ from fastapi import FastAPI
 from starlette.responses import RedirectResponse
 import os
 
+app = FastAPI()
 # import all the routes
 from app.routers.people import router as people
-from app.routers.users import router as users
-from app.routers.misc import router as misc
-
-# run app with routes
-app = FastAPI()
 app.include_router(people, prefix="/people")
+
+from app.routers.users import router as users
 app.include_router(users, prefix="/users")
+
+from app.routers.misc import router as misc
 app.include_router(misc)
+
+from app.routers.ticTacToe import router as ticTacToe
+app.include_router(ticTacToe, prefix="/ticTacToe")
 
 
 # redirect / -> /docs
