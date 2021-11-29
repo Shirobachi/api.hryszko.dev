@@ -14,7 +14,7 @@ from app.routers.misc import router as misc
 app.include_router(misc)
 
 from app.routers.ticTacToe import router as ticTacToe
-app.include_router(ticTacToe, prefix="/ticTacToe")
+app.include_router(ticTacToe, prefix="/tictactoe")
 
 
 # redirect / -> /docs
