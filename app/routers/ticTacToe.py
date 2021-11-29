@@ -31,7 +31,7 @@ async def get_all_games():
 	return collection
 
 
-async def remove_old_games():
+def remove_old_games():
 	collection = db['ticTacToe']
 
 	calcDate = lambda hours: format(floor((datetime.utcnow() - timedelta(hours=hours)).timestamp()), 'x') + "0" * 16
