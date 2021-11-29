@@ -3,10 +3,13 @@ from app.common import *
 
 from pydantic import BaseModel, Field
 from typing import List
+from bson.objectid import ObjectId
 
 import random
 from datetime import datetime
 from datetime import timedelta
+
+from math import floor
 
 router = APIRouter()
 
@@ -46,7 +49,7 @@ async def new_game():
 	codes = [game['code'] for game in await get_all_games()]
 
 	# remove old games
-	await remove_old_games()
+	remove_old_games()
 
 	# generate code
 	if len(codes) < 9999-1000:
