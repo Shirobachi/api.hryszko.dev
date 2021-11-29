@@ -30,11 +30,14 @@ async def get_all_games():
 
 async def remove_old_games():
 	collection = db['ticTacToe']
-	# remove older that 1 hour and winner is not None
-	collection.delete_many({'time': {'$lt': datetime.now() - timedelta(hours=1)}, 'winner': {'$ne': "null"}})
-	# remove older that 1 day and winner is None
-	collection.delete_many({'time': {'$lt': datetime.now() - timedelta(days=1)}, 'winner': "null"})
-	# collection.delete_many({})
+
+	calcDate = lambda hours: format(floor((datetime.utcnow() - timedelta(hours=hours)).timestamp()), 'x') + "0" * 16
+
+	# remove finished games and made in before now - 1hour
+	collection.delete_many({'_id': {'$lt': ObjectId(calcDate(1))}, 'winner': {'$ne': None}})
+
+	# remove not finished games and made in before now - 1day
+	collection.delete_many({'_id': {'$lt': ObjectId(calcDate(24))}, 'winner': {'$eq': None}})
 
 
 # New game
