@@ -105,7 +105,7 @@ async def get_game(code: int):
 
 
 # Add move
-@router.post("/{code}/{position}", tags=["ticTacToe"], response_model=TicTacToe)
+@router.put("/{code}/{position}", tags=["ticTacToe"], response_model=TicTacToe)
 async def add_move(code: int, position: int):
 	board = await get_game(code)
 
